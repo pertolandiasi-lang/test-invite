@@ -11,6 +11,8 @@ const formNote = document.getElementById("form-note");
 const attendingInput = document.getElementById("attending");
 const guestsInput = document.getElementById("guests");
 const foodPreferences = document.getElementById("food-preferences");
+const messageInput = document.getElementById("message");
+const guestsFieldGroup = document.querySelector(".field-group");
 
 let audioEnabled = true;
 
@@ -88,6 +90,32 @@ function renderFoodPreferences() {
   }
 }
 
+function updateAttendanceMode() {
+  const isDeclining = attendingInput.value === "Regretfully Decline";
+
+  if (isDeclining) {
+    guestsInput.value = "0";
+    guestsInput.disabled = true;
+    messageInput.value = "";
+    messageInput.disabled = true;
+    guestsFieldGroup.style.display = "none";
+    foodPreferences.innerHTML = "";
+    foodPreferences.style.display = "none";
+    return;
+  }
+
+  guestsInput.disabled = false;
+  messageInput.disabled = false;
+  guestsFieldGroup.style.display = "";
+  foodPreferences.style.display = "";
+
+  if (!guestsInput.value || Number.parseInt(guestsInput.value, 10) < 1) {
+    guestsInput.value = "1";
+  }
+
+  renderFoodPreferences();
+}
+
 function openInvitation() {
   overlay.classList.add("is-opening");
   setTimeout(() => {
@@ -110,6 +138,7 @@ document.querySelectorAll("[data-choice='attending'] .chip").forEach((button) =>
   button.addEventListener("click", () => {
     attendingInput.value = button.dataset.value;
     setChoice(button.parentElement, button.dataset.value);
+    updateAttendanceMode();
   });
 });
 
@@ -144,12 +173,21 @@ form.addEventListener("submit", (event) => {
   const payload = {
     name: document.getElementById("full-name").value.trim(),
     email: document.getElementById("email").value.trim(),
-    guests: Math.max(1, Math.min(5, Number.parseInt(guestsInput.value, 10) || 1)),
+    guests:
+      attendingInput.value === "Regretfully Decline"
+        ? 0
+        : Math.max(1, Math.min(5, Number.parseInt(guestsInput.value, 10) || 1)),
     attending: attendingInput.value,
-    message: document.getElementById("message").value.trim(),
-    foodPreferences: Array.from(
-      foodPreferences.querySelectorAll("input[type='hidden']")
-    ).map((input) => input.value || ""),
+    message:
+      attendingInput.value === "Regretfully Decline"
+        ? ""
+        : document.getElementById("message").value.trim(),
+    foodPreferences:
+      attendingInput.value === "Regretfully Decline"
+        ? []
+        : Array.from(foodPreferences.querySelectorAll("input[type='hidden']")).map(
+            (input) => input.value || ""
+          ),
     submittedAt: new Date().toISOString(),
   };
 
@@ -171,7 +209,7 @@ form.addEventListener("submit", (event) => {
         chip.classList.remove("active");
       });
       guestsInput.value = "1";
-      renderFoodPreferences();
+      updateAttendanceMode();
       formNote.textContent = "Thank you! Your RSVP has been sent.";
       formNote.className = "form-note success";
     })
@@ -183,5 +221,6 @@ form.addEventListener("submit", (event) => {
 });
 
 renderFoodPreferences();
+updateAttendanceMode();
 updateCountdown();
 setInterval(updateCountdown, 1000);
