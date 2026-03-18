@@ -1,6 +1,6 @@
 const targetDate = new Date("2028-12-15T17:00:00");
 const foodOptions = ["Vegetarian", "Vegan", "Normal"];
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-2q_zRSvhurTO2zakz40sds2uA2ShDWgWiMALiqXxTlJqMLtWYHPt0-EcP2bWS2zy/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby25N-qKRNayg_8Z1m431SvOO7TuXgS9IALivSUkX23fdc2TgQaUkFpUc9qoWNWlLCI/exec";
 
 const overlay = document.getElementById("invitation-overlay");
 const site = document.getElementById("site");
