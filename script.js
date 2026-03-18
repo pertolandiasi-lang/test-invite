@@ -147,9 +147,9 @@ form.addEventListener("submit", (event) => {
     guests: Math.max(1, Math.min(5, Number.parseInt(guestsInput.value, 10) || 1)),
     attending: attendingInput.value,
     message: document.getElementById("message").value.trim(),
-    foodPreferences: Array.from(foodPreferences.querySelectorAll("input[type='hidden']")).map(
-      (input) => input.value || ""
-    ),
+    foodPreferences: Array.from(
+      foodPreferences.querySelectorAll("input[type='hidden']")
+    ).map((input) => input.value || ""),
     submittedAt: new Date().toISOString(),
   };
 
@@ -158,21 +158,18 @@ form.addEventListener("submit", (event) => {
 
   fetch(GOOGLE_SCRIPT_URL, {
     method: "POST",
-    mode: "cors",
+    mode: "no-cors",
     headers: {
       "Content-Type": "text/plain;charset=utf-8",
     },
     body: JSON.stringify(payload),
   })
-    .then((response) => response.json())
-    .then((data) => {
-      if (!data.ok) {
-        throw new Error(data.error || "Submission failed");
-      }
-
+    .then(() => {
       form.reset();
       attendingInput.value = "";
-      document.querySelectorAll(".chip.active").forEach((chip) => chip.classList.remove("active"));
+      document.querySelectorAll(".chip.active").forEach((chip) => {
+        chip.classList.remove("active");
+      });
       guestsInput.value = "1";
       renderFoodPreferences();
       formNote.textContent = "Thank you! Your RSVP has been sent.";
