@@ -99,8 +99,7 @@ function updateAttendanceMode() {
     guestsFieldGroup.style.display = "none";
     foodPreferences.innerHTML = "";
     foodPreferences.style.display = "none";
-    messageInput.disabled = true;
-    messageInput.value = "";
+    messageInput.disabled = false;
     return;
   }
 
@@ -178,10 +177,7 @@ form.addEventListener("submit", (event) => {
         ? 0
         : Math.max(1, Math.min(5, Number.parseInt(guestsInput.value, 10) || 1)),
     attending: attendingInput.value,
-    message:
-      attendingInput.value === "Regretfully Decline"
-        ? ""
-        : messageInput.value.trim(),
+    message: messageInput.value.trim(),
     foodPreferences:
       attendingInput.value === "Regretfully Decline"
         ? []
@@ -224,4 +220,4 @@ renderFoodPreferences();
 updateAttendanceMode();
 updateCountdown();
 setInterval(updateCountdown, 1000);
-
+ 
