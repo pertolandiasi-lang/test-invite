@@ -96,18 +96,18 @@ function updateAttendanceMode() {
   if (isDeclining) {
     guestsInput.value = "0";
     guestsInput.disabled = true;
-    messageInput.value = "";
-    messageInput.disabled = true;
     guestsFieldGroup.style.display = "none";
     foodPreferences.innerHTML = "";
     foodPreferences.style.display = "none";
+    messageInput.disabled = true;
+    messageInput.value = "";
     return;
   }
 
   guestsInput.disabled = false;
-  messageInput.disabled = false;
   guestsFieldGroup.style.display = "";
   foodPreferences.style.display = "";
+  messageInput.disabled = false;
 
   if (!guestsInput.value || Number.parseInt(guestsInput.value, 10) < 1) {
     guestsInput.value = "1";
@@ -181,7 +181,7 @@ form.addEventListener("submit", (event) => {
     message:
       attendingInput.value === "Regretfully Decline"
         ? ""
-        : document.getElementById("message").value.trim(),
+        : messageInput.value.trim(),
     foodPreferences:
       attendingInput.value === "Regretfully Decline"
         ? []
