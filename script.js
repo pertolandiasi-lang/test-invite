@@ -141,12 +141,6 @@ form.addEventListener("submit", (event) => {
     return;
   }
 
-  if (GOOGLE_SCRIPT_URL.includes("PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE")) {
-    formNote.textContent = "Paste your Google Apps Script web app URL into script.js first.";
-    formNote.className = "form-note";
-    return;
-  }
-
   const payload = {
     name: document.getElementById("full-name").value.trim(),
     email: document.getElementById("email").value.trim(),
@@ -178,15 +172,14 @@ form.addEventListener("submit", (event) => {
 
       form.reset();
       attendingInput.value = "";
-      document
-        .querySelectorAll(".chip.active")
-        .forEach((chip) => chip.classList.remove("active"));
+      document.querySelectorAll(".chip.active").forEach((chip) => chip.classList.remove("active"));
       guestsInput.value = "1";
       renderFoodPreferences();
       formNote.textContent = "Thank you! Your RSVP has been sent.";
       formNote.className = "form-note success";
     })
-    .catch(() => {
+    .catch((error) => {
+      console.error(error);
       formNote.textContent = "Something went wrong while sending. Please try again.";
       formNote.className = "form-note";
     });
