@@ -1,5 +1,6 @@
 const targetDate = new Date("2028-12-15T17:00:00");
 const foodOptions = ["Vegetarian", "Vegan", "Normal"];
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXFY4Irw3yiomlX2zDmvy6N2aysgYhO7oZD_tXGqaWVkTMk6P-jGDxGcw-IvqgBQ6N/exec";
 
 const overlay = document.getElementById("invitation-overlay");
 const site = document.getElementById("site");
@@ -10,23 +11,8 @@ const formNote = document.getElementById("form-note");
 const attendingInput = document.getElementById("attending");
 const guestsInput = document.getElementById("guests");
 const foodPreferences = document.getElementById("food-preferences");
-const responsesList = document.getElementById("responses-list");
-const downloadResponsesButton = document.getElementById("download-responses");
-const clearResponsesButton = document.getElementById("clear-responses");
 
 let audioEnabled = true;
-
-function getStoredResponses() {
-  try {
-    return JSON.parse(localStorage.getItem("rsvp-responses") || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function saveStoredResponses(responses) {
-  localStorage.setItem("rsvp-responses", JSON.stringify(responses));
-}
 
 function pad(value) {
   return String(value).padStart(2, "0");
@@ -102,50 +88,6 @@ function renderFoodPreferences() {
   }
 }
 
-function renderResponses() {
-  const responses = getStoredResponses();
-  responsesList.innerHTML = "";
-
-  if (!responses.length) {
-    responsesList.innerHTML = '<p class="empty-state">No RSVP responses yet.</p>';
-    return;
-  }
-
-  responses
-    .slice()
-    .reverse()
-    .forEach((response) => {
-      const card = document.createElement("article");
-      card.className = "response-card";
-
-      const title = document.createElement("h3");
-      title.textContent = response.name || "Unnamed guest";
-      card.appendChild(title);
-
-      const meta = document.createElement("p");
-      meta.className = "response-meta";
-      meta.textContent = `${response.attending} • ${response.email} • ${response.guests} guest(s)`;
-      card.appendChild(meta);
-
-      const food = document.createElement("p");
-      food.className = "response-list-line";
-      food.innerHTML = `<strong>Food:</strong> ${response.foodPreferences.filter(Boolean).join(", ") || "Not selected"}`;
-      card.appendChild(food);
-
-      const message = document.createElement("p");
-      message.className = "response-copy";
-      message.innerHTML = `<strong>Message:</strong> ${response.message || "No message left."}`;
-      card.appendChild(message);
-
-      const date = document.createElement("p");
-      date.className = "response-list-line";
-      date.innerHTML = `<strong>Submitted:</strong> ${new Date(response.submittedAt).toLocaleString()}`;
-      card.appendChild(date);
-
-      responsesList.appendChild(card);
-    });
-}
-
 function openInvitation() {
   overlay.classList.add("is-opening");
   setTimeout(() => {
@@ -199,6 +141,12 @@ form.addEventListener("submit", (event) => {
     return;
   }
 
+  if (GOOGLE_SCRIPT_URL.includes("PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE")) {
+    formNote.textContent = "Paste your Google Apps Script web app URL into script.js first.";
+    formNote.className = "form-note";
+    return;
+  }
+
   const payload = {
     name: document.getElementById("full-name").value.trim(),
     email: document.getElementById("email").value.trim(),
@@ -211,42 +159,30 @@ form.addEventListener("submit", (event) => {
     submittedAt: new Date().toISOString(),
   };
 
-  const responses = getStoredResponses();
-  responses.push(payload);
-  saveStoredResponses(responses);
-  localStorage.setItem("latest-rsvp", JSON.stringify(payload));
-  form.reset();
-  attendingInput.value = "";
-  document.querySelectorAll(".chip.active").forEach((chip) => chip.classList.remove("active"));
-  guestsInput.value = "1";
-  renderFoodPreferences();
-  renderResponses();
-  formNote.textContent = "Thank you! Your RSVP has been saved locally in this browser.";
-  formNote.className = "form-note success";
-});
-
-downloadResponsesButton.addEventListener("click", () => {
-  const responses = getStoredResponses();
-  const blob = new Blob([JSON.stringify(responses, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "rsvp-responses.json";
-  link.click();
-  URL.revokeObjectURL(url);
-});
-
-clearResponsesButton.addEventListener("click", () => {
-  localStorage.removeItem("rsvp-responses");
-  localStorage.removeItem("latest-rsvp");
-  renderResponses();
-  formNote.textContent = "Saved responses were cleared from this browser.";
+  formNote.textContent = "Sending...";
   formNote.className = "form-note";
-});
 
-renderFoodPreferences();
-renderResponses();
-updateCountdown();
-setInterval(updateCountdown, 1000);
+  fetch(GOOGLE_SCRIPT_URL, {
+    method: "POST",
+    mode: "cors",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8",
+    },
+    body: JSON.stringify(payload),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (!data.ok) {
+        throw new Error(data.error || "Submission failed");
+      }
+
+      form.reset();
+      attendingInput.value = "";
+      document.querySelectorAll(".chip.active").forEach((chip) => chip.classList.remove("active"));
+      guestsInput.value = "1";
+      renderFoodPreferences();
+      formNote.textContent = "Thank you! Your RSVP has been sent.";
+      formNote.className = "form-note success";
+    })
+    .catch(() => {
+      formNote.textContent = "Something went wrong while
