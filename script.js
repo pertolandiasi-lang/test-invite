@@ -224,3 +224,4 @@ renderFoodPreferences();
 updateAttendanceMode();
 updateCountdown();
 setInterval(updateCountdown, 1000);
+
